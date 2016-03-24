@@ -42,5 +42,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", handle)
+	log.Printf("started on :8080\n")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
