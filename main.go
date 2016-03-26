@@ -6,6 +6,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
+)
+
+var (
+	counter int
 )
 
 type answer struct {
@@ -34,6 +40,52 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	/*Return a code
+	example: ... -H "RETURN_CODE: 503"...
+	will respond with status_code of 503
+	*/
+	if r.Header.Get("RETURN_CODE") != "" {
+		header, err := strconv.Atoi(r.Header.Get("RETURN_CODE"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, "", header)
+	}
+
+	/*Return CODE [0] and after [1] tries return [2]
+	example: ... -H "RETURN_CODE_AFTER: 500,2,200
+	will respond with status_code 500 twice, followed by 200
+	*/
+	if r.Header.Get("RETURN_CODE_AFTER") != "" {
+		vals := strings.Split(r.Header.Get("RETURN_CODE_AFTER"), ",")
+		initHeader, err := strconv.Atoi(vals[0])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		tries, err := strconv.Atoi(vals[1])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		finHeader, err := strconv.Atoi(vals[2])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if counter < tries {
+			http.Error(w, "", initHeader)
+			counter++
+		} else {
+			http.Error(w, "", finHeader)
+			counter = 0
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
