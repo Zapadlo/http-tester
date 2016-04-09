@@ -88,6 +88,11 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if r.Header.Get("CACHE_CONTROL") != "" {
+		val := r.Header.Get("CACHE_CONTROL")
+		w.Header().Set("Cache-Control", val)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
 }
