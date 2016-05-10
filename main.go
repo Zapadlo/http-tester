@@ -98,6 +98,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	http.HandleFunc("/", handle)
 	log.Printf("started on :8080\n")
 	log.Fatal(http.ListenAndServe(":8080", nil))
